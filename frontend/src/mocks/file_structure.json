@@ -1,0 +1,4 @@
+[
+  { "name": "file1.h5", "type": "file", "path": "/file1.h5" },
+  { "name": "folder1", "type": "folder", "path": "/folder1" }
+] 

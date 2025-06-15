@@ -1,0 +1,357 @@
+openapi: 3.0.0
+info:
+  title: HDF5 Data Visualization API
+  description: API for managing and visualizing HDF5 files with S3/HSDS integration
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000
+    description: Development server
+
+components:
+  schemas:
+    ApiResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          description: Operation success status
+        message:
+          type: string
+          description: Response message
+        data:
+          type: object
+          description: Response payload (optional)
+    DirectoryTree:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [folder, file]
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/DirectoryTree'
+    HDF5Structure:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+          enum: [group, dataset]
+        shape:
+          type: array
+          items:
+            type: integer
+        dtype:
+          type: string
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/HDF5Structure'
+
+paths:
+  /api/test:
+    get:
+      summary: Test API sanity
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/directory_tree:
+    get:
+      summary: Get directory tree structure
+      responses:
+        '200':
+          description: Directory tree retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/DirectoryTree'
+
+  /api/create_folder:
+    post:
+      summary: Create a new folder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                parent:
+                  type: string
+                  description: Parent folder path relative to FOLDER_PATH
+                name:
+                  type: string
+                  description: New folder name
+              required:
+                - name
+      responses:
+        '200':
+          description: Folder created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/file_structure:
+    post:
+      summary: Get HDF5 file structure
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                file_name:
+                  type: string
+                  description: HDF5 file name
+              required:
+                - file_name
+      responses:
+        '200':
+          description: File structure retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/HDF5Structure'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/get_attributes:
+    post:
+      summary: Get HDF5 object attributes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                file_name:
+                  type: string
+                  description: HDF5 file name
+                object_path:
+                  type: string
+                  description: Path to HDF5 object
+              required:
+                - file_name
+      responses:
+        '200':
+          description: Attributes retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        additionalProperties: true
+
+  /api/get_dataset:
+    post:
+      summary: Get HDF5 dataset content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                file_name:
+                  type: string
+                  description: HDF5 file name
+                dataset_path:
+                  type: string
+                  description: Path to dataset
+              required:
+                - file_name
+                - dataset_path
+      responses:
+        '200':
+          description: Dataset retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          data:
+                            type: array
+                            items:
+                              type: number
+                          shape:
+                            type: array
+                            items:
+                              type: integer
+                          dtype:
+                            type: string
+                          attrs:
+                            type: object
+                            additionalProperties: true
+
+  /api/upload_hdf5:
+    post:
+      summary: Upload HDF5 file to S3
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/download_hdf5:
+    get:
+      summary: Download HDF5 file from S3
+      parameters:
+        - name: file_name
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File downloaded successfully
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/list_s3_files:
+    get:
+      summary: List HDF5 files in S3
+      responses:
+        '200':
+          description: Files listed successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: string
+
+  /api/s3_create_folder:
+    post:
+      summary: Create folder in S3
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                folder_path:
+                  type: string
+                  description: Path for new folder
+              required:
+                - folder_path
+      responses:
+        '200':
+          description: Folder created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+
+  /api/s3_list_folder:
+    post:
+      summary: List S3 folder contents
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                folder_path:
+                  type: string
+                  description: Path to list contents from
+      responses:
+        '200':
+          description: Folder contents listed successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      folders:
+                        type: array
+                        items:
+                          type: string
+                      files:
+                        type: array
+                        items:
+                          type: string 

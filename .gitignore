@@ -1,0 +1,13 @@
+# Local Netlify folder
+.netlify
+
+/build
+
+/node_modules
+
+# Игнорировать файл с секретами
+.env
+
+# Дополнительные файлы (если нужно)
+*.env*
+env.local

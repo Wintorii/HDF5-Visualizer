@@ -1,0 +1,169 @@
+// Container layout
+.container {
+  display: flex;
+  padding: 24px;
+  height: 100vh;
+  overflow: hidden;
+  width: 100%;
+}
+
+// Sidebar styles
+.sidebar {
+  width: 250px;
+  min-width: 250px;
+  padding-right: 24px;
+  border-right: 1px solid #e0e0e0;
+  overflow-y: auto;
+}
+
+.sidebarTitle {
+  margin: 0 0 16px 0;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+// Main content area
+.content {
+  display: flex;
+  flex-direction: column;
+  padding-left: 24px;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 0 24px 0;
+  padding: 0;
+}
+
+.buttonEdit {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+
+
+.title {
+  margin: 0;
+  padding: 0;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.fileName {
+  font-weight: 600;
+  color: #007bff;
+  font-size: 1.5rem;
+  text-decoration: underline;
+}
+
+// Controls section
+.controls {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.controlGroup {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    
+    select {
+      padding: 6px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+      min-width: 120px;
+    }
+  }
+}
+
+// Chart container
+.chartContainer {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 24px;
+  height: calc(100vh - 250px);
+  overflow: auto;
+}
+
+// Tree view styles
+.treeContainer {
+  user-select: none;
+}
+
+.treeNode {
+  margin: 2px 0;
+}
+
+.treeNodeLabel {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
+
+  &.selected {
+    background-color: #e3f2fd;
+  }
+
+  &.group {
+    font-weight: 500;
+  }
+}
+
+.arrow {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  transition: transform 0.2s;
+
+  &.expanded {
+    transform: rotate(90deg);
+  }
+}
+
+.nodeName {
+  &.selectedLeaf {
+    color: #1976d2;
+    font-weight: 500;
+  }
+}
+
+.treeChildren {
+  margin-left: 16px;
+}
+
+// Loading state
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #666;
+  font-size: 1.1rem;
+}

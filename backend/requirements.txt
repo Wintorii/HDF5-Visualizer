@@ -1,0 +1,8 @@
+coverage==5.3
+Flask>=2.3.0
+Flask-Cors==3.0.9
+Flask-Testing==0.8.0
+h5pyd==0.15.1
+numpy==1.19.4
+tzlocal==2.1
+gunicorn==19.9.0

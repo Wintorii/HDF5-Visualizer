@@ -1,0 +1,24 @@
+.welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+    background-color: #f0f0f0;
+}
+
+.welcome_title {
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.welcome_description {
+    font-size: 1.5rem;
+    color: #666;
+}
+
+.welcome_button {
+    background-color: #007bff;
+    color: #fff;
+}
