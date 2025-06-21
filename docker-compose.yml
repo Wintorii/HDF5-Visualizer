@@ -13,28 +13,86 @@ services:
     environment:
       - FLASK_APP=api/__init__.py
       - FLASK_ENV=development
-      - HSDS_ENDPOINT=http://hsds:5101
-      - HSDS_BUCKET=wintori
-      - HSDS_USERNAME=${HSDS_USERNAME}  # Используем переменную
-      - HSDS_PASSWORD=${HSDS_PASSWORD}  # Используем переменную
+      - HSDS_ENDPOINT=http://hsds-sn:5101
+      - HSDS_BUCKET=${BUCKET_NAME}
+      - HSDS_USERNAME=${HSDS_USERNAME}
+      - HSDS_PASSWORD=${HSDS_PASSWORD}
 
-  hsds:
-    image: hdfgroup/hsds:latest
-    ports:
-      - "5101:5101"
-    env_file: .env  # Добавьте эту строку
+  hsds-head:
+    platform: "linux/amd64"
+    image: hdfgroup/hsds
+    restart: ${RESTART_POLICY}
+    mem_limit: ${HEAD_RAM}
     environment:
-      - HSDS_ENDPOINT=http://0.0.0.0:5101
-      - BUCKET_NAME=wintori
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}  # Используем переменную
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}  # Используем переменную
-      - AWS_REGION=ru-central1
-      - AWS_S3_GATEWAY=https://storage.yandexcloud.net
-      - AWS_SIGNATURE_VERSION=4
-      - HSDS_ADMIN_USERNAME=admin
-      - HSDS_ADMIN_PASSWORD=admin
-      - HSDS_LOG_LEVEL=DEBUG
-    restart: unless-stopped
+      - TARGET_SN_COUNT=${SN_CORES}
+      - TARGET_DN_COUNT=${DN_CORES}
+      - NODE_TYPE=head_node
+      - HEAD_PORT=5100
+      - HN_PORT=5100
+      - AWS_S3_GATEWAY=${AWS_S3_GATEWAY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - BUCKET_NAME=${BUCKET_NAME}
+      - LOG_LEVEL=${LOG_LEVEL}
+    ports:
+      - "${HEAD_PORT}:5100"
+    volumes:
+      - ./admin/config/:/config/
+    env_file: .env
+
+  hsds-dn:
+    platform: "linux/amd64"
+    image: hdfgroup/hsds
+    restart: ${RESTART_POLICY}
+    mem_limit: ${DN_RAM}
+    environment:
+      - NODE_TYPE=dn
+      - DN_PORT=6101
+      - DATA_NODE_PORT=6101
+      - HEAD_ENDPOINT=http://hsds-head:5100
+      - AWS_S3_GATEWAY=${AWS_S3_GATEWAY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - BUCKET_NAME=${BUCKET_NAME}
+      - LOG_LEVEL=${LOG_LEVEL}
+    ports:
+      - "${DN_PORT}:6101"
+    depends_on:
+      - hsds-head
+    volumes:
+      - ./admin/config/:/config/
+    links:
+      - hsds-head
+    env_file: .env
+
+  hsds-sn:
+    platform: "linux/amd64"
+    image: hdfgroup/hsds
+    restart: ${RESTART_POLICY}
+    mem_limit: ${SN_RAM}
+    environment:
+      - NODE_TYPE=sn
+      - SN_PORT=5101
+      - SERVICE_NODE_PORT=5101
+      - HEAD_ENDPOINT=http://hsds-head:5100
+      - AWS_S3_GATEWAY=${AWS_S3_GATEWAY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - BUCKET_NAME=${BUCKET_NAME}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - HSDS_ENDPOINT=${HSDS_ENDPOINT}
+    ports:
+      - "${SN_PORT}:5101"
+    depends_on:
+      - hsds-head
+    volumes:
+      - ./admin/config/:/config/
+    links:
+      - hsds-head
+    env_file: .env
 
   frontend:
     build:
@@ -44,10 +102,12 @@ services:
       - "./frontend:/usr/src/app"
       - "/usr/src/app/node_modules"
     ports:
-      - 3007:3000
+      - 3007:5173
     environment:
       - NODE_ENV=development
       - REACT_APP_BACKEND_SERVICE_URL=http://localhost
+      - VITE_HOST=0.0.0.0
+      - VITE_PORT=5173
 
   nginx:
     build:

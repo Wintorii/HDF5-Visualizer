@@ -1,0 +1,29 @@
+#
+# Sample config for HSDS
+#
+hsds_endpoint: http://hsds-head:5100    # ip address for primary server  
+head_endpoint: http://hsds-head:5100    # ip address for head server
+password_file: /config/passwd.txt       # path to a text file with username/password mapping
+log_level: INFO                         # log level, supported are DEBUG, INFO, WARN, ERROR
+max_chunks_per_request: 1000            # maximum number of chunks returned in one request
+    
+# metadata memory cache size per process
+metadata_mem_cache_size: 128m
+
+# chunk cache size per process  
+chunk_mem_cache_size: 128m
+
+# S3 storage settings
+aws_access_key_id: ${AWS_ACCESS_KEY_ID}
+aws_secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+aws_region: ${AWS_REGION}
+aws_s3_gateway: ${AWS_S3_GATEWAY}
+bucket_name: ${BUCKET_NAME}
+
+# security
+cors_domain: "*"
+allow_user_defined_groups: false
+
+# cluster layout
+target_sn_count: ${TARGET_SN_COUNT}
+target_dn_count: ${TARGET_DN_COUNT} 
