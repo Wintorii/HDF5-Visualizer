@@ -83,7 +83,7 @@ export const Welcome = () => {
                         HDF5 Visualizer
                     </h1>
                     <p className={styles.heroSubtitle}>
-                        Мощная платформа для визуализации и управления HDF5 файлами в облаке
+                        Платформа для визуализации и управления HDF5 файлами в облаке
                     </p>
                     <div className={styles.heroButtons}>
                         <button 
