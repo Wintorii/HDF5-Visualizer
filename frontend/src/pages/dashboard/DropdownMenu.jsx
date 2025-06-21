@@ -72,7 +72,7 @@ const DropdownMenu = ({ anchorRef, onClose, onAddFolder, onUpdateFolders }) => {
         >
             <div className={styles.menu_item} onClick={() => { /* Новая папка */ onAddFolder(); onClose(); }}>Новая папка</div>
             <div className={styles.menu_item} onClick={() => { /* Обновить */ onUpdateFolders(); onClose(); }}>Обновить</div>
-            <div
+            {/* <div
                 className={styles.menu_item + ' ' + styles.menu_item_hasSub}
                 onMouseEnter={() => setSubmenuOpen(true)}
                 onMouseLeave={() => setSubmenuOpen(false)}
@@ -82,7 +82,7 @@ const DropdownMenu = ({ anchorRef, onClose, onAddFolder, onUpdateFolders }) => {
                 {submenuOpen && (
                     <SortSubMenu onSelect={handleSelect} onClose={onClose} />
                 )}
-            </div>
+            </div> */}
         </div>
     );
 };

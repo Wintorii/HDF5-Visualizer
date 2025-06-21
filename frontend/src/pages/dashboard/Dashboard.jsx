@@ -1,6 +1,6 @@
 import styles from './Dashboard.module.scss'
 import { FolderRepository } from '../../shared/api/Folder/folder';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import FileIcon from './lib/assets/file-icon.svg';
 import FolderIcon from './lib/assets/folder-icon.svg';
 import RightChevronIcon from './lib/assets/right-chevron.svg';
@@ -14,6 +14,11 @@ import { routerConfig } from '../../shared/consts/routerConfig';
 
 export const Dashboard = () => {
     const [folders, setFolders] = useState([]);
+    const [allItems, setAllItems] = useState([]); // Все элементы для поиска
+    const [recentFiles, setRecentFiles] = useState([]);
+    const [sortType, setSortType] = useState('name');
+    const [sortDirection, setSortDirection] = useState('asc');
+
     const folderRepository = new FolderRepository();
     const [menuOpen, setMenuOpen] = useState(false);
     const buttonRef = useRef(null);
@@ -24,16 +29,13 @@ export const Dashboard = () => {
     const searchRef = useRef(null);
 
     const [openModalAddFolder, setOpenModalAddFolder] = useState(false);
-    // const [hdf5Data, setHdf5Data] = useState({});
-
     
-
     const fileRepository = new FileRepository();
     const navigate = useNavigate();
 
     useEffect(() => {
         updateFolders();
-        // loadHdf5Data();
+        loadRecentFiles();
     }, []);
 
     useEffect(() => {
@@ -51,25 +53,31 @@ export const Dashboard = () => {
 
     const updateFolders = () => {
         folderRepository.get().then((response) => {
-            setFolders(response.data);
+            setAllItems(response.data); // Сохраняем все элементы
+            // Показываем только корневые элементы (без parent или parent = null)
+            const rootItems = response.data.filter(item => !item.parent || item.parent === null);
+            setFolders(rootItems);
         });
     };
 
-    // const loadHdf5Data = () => {
-    //     const fileName = 'test_dataset_1.hdf5';
-    //     fileRepository.getDataset(fileName, 'internal').then(res => {
-    //         setHdf5Data(prev => ({ ...prev, internal: res.data.data }));
-    //     });
-    //     fileRepository.getDataset(fileName, 'external').then(res => {
-    //         setHdf5Data(prev => ({ ...prev, external: res.data.data }));
-    //     });
-    //     // fileRepository.getDataset(fileName, '').then(res => {
-    //     //     setHdf5Data(prev => ({ ...prev, spectrum1: res.data.data }));
-    //     // });
-    //     // fileRepository.getDataset(fileName, '').then(res => {
-    //     //     setHdf5Data(prev => ({ ...prev, summary: res.data.data, summaryColumns: res.data.attrs?.columns || [] }));
-    //     // });
-    // };
+    const loadRecentFiles = () => {
+        const files = JSON.parse(localStorage.getItem('recentFiles') || '[]');
+        setRecentFiles(files);
+    };
+
+    const addToRecentFiles = (file) => {
+        // Извлекаем только имя файла из полного пути для корректного отображения
+        const fileName = file.name.includes('/') ? file.name.split('/').pop() : file.name;
+        const fileForRecent = {
+            ...file,
+            name: fileName,
+            displayPath: file.path // Сохраняем полный путь для отображения
+        };
+        
+        const updatedRecentFiles = [fileForRecent, ...recentFiles.filter(f => f.path !== file.path)].slice(0, 5);
+        setRecentFiles(updatedRecentFiles);
+        localStorage.setItem('recentFiles', JSON.stringify(updatedRecentFiles));
+    };
 
     const handleSearch = (e) => {
         const query = e.target.value;
@@ -77,7 +85,7 @@ export const Dashboard = () => {
         setIsSearching(!!query);
 
         if (query) {
-            const filteredResults = folders.filter(item => 
+            const filteredResults = allItems.filter(item => 
                 item.name.toLowerCase().includes(query.toLowerCase())
             );
             setSearchResults(filteredResults);
@@ -90,11 +98,10 @@ export const Dashboard = () => {
         setSearchQuery('');
         setIsSearching(false);
         setSearchResults([]);
-        handleFileClick(item);
+        handleItemClick(item);
     };
 
     const handleAddFolder = (folder) => {
-        // setFolders([...folders, folder]);
         setMenuOpen(false);
         setOpenModalAddFolder(false);
         updateFolders();
@@ -109,9 +116,44 @@ export const Dashboard = () => {
         setMenuOpen(false);
     };
 
-    const handleFileClick = (file) => {
-        if (file.type === 'file' && file.name.endsWith('.hdf5')) {
-            navigate(routerConfig.fileView.replace(':fileName', file.name));
+    const handleItemClick = (item) => {
+        if (item.type === 'file' && item.name.endsWith('.hdf5')) {
+            addToRecentFiles(item);
+            // Используем только имя файла для навигации
+            const fileName = item.name.includes('/') ? item.name.split('/').pop() : item.name;
+            navigate(routerConfig.fileView.replace(':fileName', fileName));
+        } else if (item.type === 'folder') {
+            navigate(routerConfig.folderView.replace('*', item.path));
+        }
+    };
+
+    const handleRecentFileClick = (file) => {
+        // Для недавних файлов используем оригинальный путь для навигации
+        const fileName = file.name.includes('/') ? file.name.split('/').pop() : file.name;
+        navigate(routerConfig.fileView.replace(':fileName', fileName));
+    };
+    
+    const sortedFolders = useMemo(() => {
+        return [...folders].sort((a, b) => {
+            const aValue = a[sortType];
+            const bValue = b[sortType];
+
+            if (aValue < bValue) {
+                return sortDirection === 'asc' ? -1 : 1;
+            }
+            if (aValue > bValue) {
+                return sortDirection === 'asc' ? 1 : -1;
+            }
+            return 0;
+        });
+    }, [folders, sortType, sortDirection]);
+
+    const handleSort = (type) => {
+        if (type === sortType) {
+            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortType(type);
+            setSortDirection('asc');
         }
     };
 
@@ -161,7 +203,7 @@ export const Dashboard = () => {
                 <div className={styles.header_buttons}>
                     <label className={styles.header_label} htmlFor='file'>Добавить файл</label>
                     <input className={styles.header_button} type='file' name='file' id='file' />
-                    <button
+                    <button 
                         className={styles.header_options}
                         ref={buttonRef}
                         onClick={() => setMenuOpen((prev) => !prev)}
@@ -174,26 +216,36 @@ export const Dashboard = () => {
             
             <div className={styles.folders}>
                 <div className={styles.folders_header}>
-                    <h3 className={styles.folders_title}>Мои файлы</h3>
-                    <button 
-                        className={styles.folders_toggleView}
-                        onClick={() => setIsFoldersOpen((prev) => !prev)}
-                        aria-label={isFoldersOpen ? 'Свернуть папки' : 'Развернуть папки'}
-                    >
-                        <img 
-                            src={RightChevronIcon} 
-                            alt='icon' 
-                            className={clsx(styles.folders_toggleView_icon, { [styles.folders_toggleView_icon_rotated]: isFoldersOpen })}
-                        />
-                    </button>
+                    <div className={styles.folders_title_wrapper}>
+                        <h3 className={styles.folders_title}>Мои файлы</h3>
+                        <button 
+                            className={styles.folders_toggleView}
+                            onClick={() => setIsFoldersOpen((prev) => !prev)}
+                            aria-label={isFoldersOpen ? 'Свернуть папки' : 'Развернуть папки'}
+                        >
+                            <img 
+                                src={RightChevronIcon} 
+                                alt='icon' 
+                                className={clsx(styles.folders_toggleView_icon, { [styles.folders_toggleView_icon_rotated]: isFoldersOpen })}
+                            />
+                        </button>
+                    </div>
+                    <div className={styles.sort_buttons}>
+                        <button onClick={() => handleSort('name')}>
+                            Сортировать по имени {sortType === 'name' && (sortDirection === 'asc' ? '▲' : '▼')}
+                        </button>
+                        <button onClick={() => handleSort('type')}>
+                            Сортировать по типу {sortType === 'type' && (sortDirection === 'asc' ? '▲' : '▼')}
+                        </button>
+                    </div>
                 </div>
                 <ul 
                     className={clsx(styles.folders_list, { [styles.folders_list_collapsed]: !isFoldersOpen })}
                 >
-                    {folders.length && folders.map((folder) => (
-                        <li key={folder.id} className={styles.folders_list_item} onClick={() => handleFileClick(folder)} style={{ cursor: folder.type === 'file' ? 'pointer' : 'default' }}>
-                            <img src={folder.type === 'folder' ? FolderIcon : FileIcon} alt='icon' className={styles.folders_list_item_icon}/>
-                            <p className={styles.folders_list_item_name}>{folder.name}</p>
+                    {sortedFolders.map((item) => (
+                        <li key={item.id} className={styles.folders_list_item} onClick={() => handleItemClick(item)} style={{ cursor: 'pointer' }}>
+                            <img src={item.type === 'folder' ? FolderIcon : FileIcon} alt='icon' className={styles.folders_list_item_icon}/>
+                            <p className={styles.folders_list_item_name}>{item.name}</p>
                         </li>
                     ))}
                 </ul>
@@ -202,7 +254,17 @@ export const Dashboard = () => {
             <div className={styles.recents}>
                 <h3 className={styles.recents_title}>Недавние файлы</h3>
                 <ul className={styles.recents_list}>
-
+                    {recentFiles.map(file => (
+                         <li key={file.id} className={styles.folders_list_item} onClick={() => handleRecentFileClick(file)} style={{ cursor: 'pointer' }}>
+                            <img src={FileIcon} alt='icon' className={styles.folders_list_item_icon}/>
+                            <div className={styles.folders_list_item_content}>
+                                <p className={styles.folders_list_item_name}>{file.name}</p>
+                                {file.displayPath && file.displayPath !== `/${file.name}` && (
+                                    <p className={styles.folders_list_item_path}>{file.displayPath}</p>
+                                )}
+                            </div>
+                        </li>
+                    ))}
                 </ul>
             </div>
 

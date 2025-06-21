@@ -166,4 +166,56 @@
   height: 100%;
   color: #718096;
   font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    padding: 16px;
+    height: auto;
+    overflow: auto;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-width: auto;
+    margin-right: 0;
+    margin-bottom: 16px;
+    border-radius: 8px;
+    max-height: 30vh;
+  }
+
+  .content {
+    border-radius: 8px;
+  }
+
+  .titleSection {
+    padding: 16px;
+    
+    .title {
+      font-size: 1.2rem;
+    }
+  }
+
+  .editorContainer {
+    padding: 16px;
+  }
+
+  .dataTable {
+    font-size: 0.8rem;
+    
+    th, td {
+      padding: 8px 6px;
+    }
+  }
+
+  .cell {
+    min-width: 60px;
+    padding: 6px;
+  }
+
+  .cellInput {
+    padding: 4px 6px;
+    font-size: 0.8rem;
+  }
 } 

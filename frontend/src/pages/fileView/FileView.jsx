@@ -198,16 +198,6 @@ export const FileView = () => {
                   ))}
                 </select>
               </label>
-              <label>Y Axis:
-                <select 
-                  value={yAxis} 
-                  onChange={e => setYAxis(Number(e.target.value))}
-                >
-                  {axisOptions.map((opt, i) => (
-                    <option key={i} value={i}>{opt}</option>
-                  ))}
-                </select>
-              </label>
             </div>
           )}
 
@@ -227,7 +217,7 @@ export const FileView = () => {
             </div>
           )}
         </div>
-
+        
         <div className={styles.chartContainer}>
           {renderChart()}
         </div>

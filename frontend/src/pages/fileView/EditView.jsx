@@ -200,25 +200,29 @@ export const EditView = () => {
       </aside>
       
       <main className={styles.content}>
-        <div className={styles.header}>
-          <div className={styles.titleSection}>
-            <h2 className={styles.title}>
-              Редактирование файла: <span className={styles.fileName}>{fileName}</span>
-            </h2>
-            <div className={styles.datasetPath}>
-              Датасет: <span className={styles.pathText}>{selectedDataset}</span>
-            </div>
+        <div className={styles.titleSection}>
+          <h2 className={styles.title}>
+            Редактирование файла: <span className={styles.fileName}>{fileName}</span>
+          </h2>
+          <div className={styles.datasetPath}>
+            Датасет: <span className={styles.pathText}>{selectedDataset}</span>
           </div>
-          <button 
-            className={styles.saveButton}
-            onClick={handleSave}
-            disabled={!hasUnsavedChanges}
-          >
-            Сохранить изменения
-          </button>
         </div>
-
+        
         <div className={styles.editorContainer}>
+          <div className={styles.headerActions}>
+            {hasUnsavedChanges && (
+              <span className={styles.unsavedIndicator}>Есть несохраненные изменения</span>
+            )}
+            <button 
+              className={styles.saveButton}
+              onClick={handleSave}
+              disabled={!hasUnsavedChanges}
+            >
+              Сохранить изменения
+            </button>
+          </div>
+          
           {renderTable()}
         </div>
       </main>

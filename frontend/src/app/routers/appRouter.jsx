@@ -12,6 +12,7 @@ import { FileView } from '../../pages/fileView/FileView'
 import { EditView } from '../../pages/fileView/EditView'
 import { ChartExamples } from '../../pages/chart-examples/ChartExamples'
 import { Storage } from '../../pages/storage'
+import FolderView from '../../pages/folderView/FolderView'
 
 export const AppRouter = () => {
 
@@ -25,6 +26,7 @@ export const AppRouter = () => {
                         <Route path={routerConfig.fileEdit} element={<EditView />} />
                         <Route path={routerConfig.examples} element={<ChartExamples />} />
                         <Route path={routerConfig.storage} element={<Storage />} />
+                        <Route path={routerConfig.folderView} element={<FolderView />} />
                     </Route>
                 </Routes>
             </Router>

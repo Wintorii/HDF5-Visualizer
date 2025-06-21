@@ -15,6 +15,24 @@
     }
 }
 
+@media (max-width: 768px) {
+    .aside {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        z-index: 1000;
+        background-color: #fff;
+        box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+        transform: translateX(-100%);
+
+        &.opened {
+            transform: translateX(0);
+            width: 240px; // Ensure it has a width when open
+        }
+    }
+}
+
 .iconBlock {
     display: flex;
     align-items: center;

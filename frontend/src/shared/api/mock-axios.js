@@ -60,7 +60,22 @@ export function setupMockAxios() {
         const treeFile = 'directory_tree.json';
         let tree = memoryMocks[treeFile] || (await import(`../../mocks/${treeFile}`)).default;
         tree = Array.isArray(tree) ? tree : [];
-        tree.push({ name, parent });
+        
+        // Генерируем новый id (максимальный + 1)
+        const maxId = tree.length > 0 ? Math.max(...tree.map(item => item.id)) : 0;
+        const newId = maxId + 1;
+        
+        // Формируем path для новой папки
+        const newPath = parent ? `${parent}/${name}` : `/${name}`;
+        
+        // Добавляем новую папку
+        tree.push({ 
+          id: newId, 
+          name, 
+          path: newPath, 
+          type: 'folder', 
+          parent: parent || null 
+        });
         memoryMocks[treeFile] = tree;
         data = { success: true };
       }

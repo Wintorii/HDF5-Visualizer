@@ -22,12 +22,41 @@ export const DatasetTree = ({ nodes, selectedPath, onSelect, prefix = '' }) => (
 );
 
 /**
+ * Check if a group contains the selected dataset
+ */
+const containsSelectedDataset = (node, selectedPath, currentPath) => {
+  if (node.type !== 'group') {
+    return false;
+  }
+  
+  if (!node.children) {
+    return false;
+  }
+  
+  // Check if any child is the selected path
+  for (const child of node.children) {
+    const childPath = `${currentPath}/${child.name}`;
+    if (childPath === selectedPath) {
+      return true;
+    }
+    
+    // Recursively check children
+    if (child.type === 'group' && containsSelectedDataset(child, selectedPath, childPath)) {
+      return true;
+    }
+  }
+  
+  return false;
+};
+
+/**
  * Individual node component in the dataset tree
  */
 const DatasetTreeNode = ({ node, path, selectedPath, onSelect, level }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const isSelected = path === selectedPath;
   const isGroup = node.type === 'group';
+  const containsSelected = isGroup && containsSelectedDataset(node, selectedPath, path);
 
   const handleNodeClick = (e) => {
     if (isGroup) {
@@ -65,6 +94,9 @@ const DatasetTreeNode = ({ node, path, selectedPath, onSelect, level }) => {
         >
           {node.name}
         </span>
+        {containsSelected && (
+          <div className={styles.selectedIndicator} />
+        )}
       </div>
 
       {isGroup && isExpanded && node.children && (

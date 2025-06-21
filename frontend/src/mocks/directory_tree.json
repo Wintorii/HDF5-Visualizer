@@ -1,4 +1,15 @@
 [
-  { "name": "folder1", "path": "/folder1" },
-  { "name": "folder2", "path": "/folder2" }
+  { "id": 1, "name": "folder1", "path": "/folder1", "type": "folder", "parent": null },
+  { "id": 2, "name": "folder2", "path": "/folder2", "type": "folder", "parent": null },
+  { "id": 3, "name": "test_dataset_1.hdf5", "path": "/test_dataset_1.hdf5", "type": "file", "parent": null },
+  { "id": 4, "name": "another_dataset.hdf5", "path": "/another_dataset.hdf5", "type": "file", "parent": null },
+  { "id": 5, "name": "empty_folder", "path": "/empty_folder", "type": "folder", "parent": null },
+  { "id": 6, "name": "subfolder1", "path": "/folder1/subfolder1", "type": "folder", "parent": "/folder1" },
+  { "id": 7, "name": "data_file.hdf5", "path": "/folder1/data_file.hdf5", "type": "file", "parent": "/folder1" },
+  { "id": 8, "name": "deep_folder", "path": "/folder1/subfolder1/deep_folder", "type": "folder", "parent": "/folder1/subfolder1" },
+  { "id": 9, "name": "deep_data.hdf5", "path": "/folder1/subfolder1/deep_data.hdf5", "type": "file", "parent": "/folder1/subfolder1" },
+  { "id": 10, "name": "final_data.hdf5", "path": "/folder1/subfolder1/deep_folder/final_data.hdf5", "type": "file", "parent": "/folder1/subfolder1/deep_folder" },
+  { "id": 11, "name": "documents", "path": "/folder2/documents", "type": "folder", "parent": "/folder2" },
+  { "id": 12, "name": "report.hdf5", "path": "/folder2/report.hdf5", "type": "file", "parent": "/folder2" },
+  { "id": 13, "name": "analysis.hdf5", "path": "/folder2/documents/analysis.hdf5", "type": "file", "parent": "/folder2/documents" }
 ] 

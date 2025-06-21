@@ -3,6 +3,9 @@ export const mockStorageServers = [
     id: 1,
     name: 'wintori',
     endpoint: 'storage.yandexcloud.net',
+    accessKey: 'AKIAIOSFODNN7EXAMPLE',
+    secretKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+    bucket: 'wintori-bucket',
     status: 'active',
     totalSpace: 1024 * 1024 * 1024 * 1000,  // 1TB
     usedSpace: 1024 * 1024 * 1024 * 1.6, // 1G
@@ -15,6 +18,9 @@ export const mockStorageServers = [
     id: 2,
     name: 'Backup Server',
     endpoint: 'backup-s3.company.com',
+    accessKey: 'AKIAIOSFODNN7BACKUP',
+    secretKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYBACKUPKEY',
+    bucket: 'backup-storage-bucket',
     status: 'warning',
     totalSpace: 1024 * 1024 * 1024 * 1000, // 1TB
     usedSpace: 1024 * 1024 * 1024 * 950, // 950GB
@@ -27,6 +33,9 @@ export const mockStorageServers = [
     id: 3,
     name: 'Test Storage',
     endpoint: 'archive-s3.company.com',
+    accessKey: 'AKIAIOSFODNN7ARCHIVE',
+    secretKey: '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',
+    bucket: 'archive-test-bucket',
     status: 'error',
     totalSpace: 1024 * 1024 * 1024 * 2000, // 2TB
     usedSpace: 1024 * 1024 * 1024 * 1200, // 1.2TB
@@ -39,6 +48,9 @@ export const mockStorageServers = [
     id: 4,
     name: 'Test Storage 2',
     endpoint: 'dev-s3.company.com',
+    accessKey: 'AKIAIOSFODNN7DEV',
+    secretKey: 'wJalrXUtnFEMI/K7MDENG/bPxRfiCYDEVKEY',
+    bucket: 'dev-storage-bucket',
     status: 'active',
     totalSpace: 1024 * 1024 * 1024 * 250, // 250GB
     usedSpace: 1024 * 1024 * 1024 * 100, // 100GB

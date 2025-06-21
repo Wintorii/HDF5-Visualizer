@@ -19,6 +19,7 @@ class RouterConfig {
     fileEdit = '/edit/:fileName';
     examples = '/examples';
     storage = '/storage';
+    folderView = '/folder/*';
 }
 
 export const routerConfig = new RouterConfig();

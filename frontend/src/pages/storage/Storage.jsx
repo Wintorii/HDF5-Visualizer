@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './Storage.module.scss';
 import { mockStorageServers } from './mockData';
-import { FiPlus, FiServer, FiHardDrive, FiGlobe, FiClock } from 'react-icons/fi';
+import { FiPlus, FiServer, FiHardDrive, FiGlobe, FiClock, FiEdit2, FiTrash2, FiDatabase } from 'react-icons/fi';
 
 const formatBytes = (bytes) => {
   if (bytes === 0) return '0 B';
@@ -11,7 +11,7 @@ const formatBytes = (bytes) => {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 };
 
-const AddStorageModal = ({ isOpen, onClose, onAdd }) => {
+const StorageModal = ({ isOpen, onClose, onSave, storage = null, mode = 'add' }) => {
   const [formData, setFormData] = useState({
     name: '',
     endpoint: '',
@@ -21,9 +21,43 @@ const AddStorageModal = ({ isOpen, onClose, onAdd }) => {
     bucket: ''
   });
 
+  useEffect(() => {
+    if (storage && mode === 'edit') {
+      setFormData({
+        name: storage.name || '',
+        endpoint: storage.endpoint || '',
+        accessKey: storage.accessKey || '',
+        secretKey: storage.secretKey || '',
+        region: storage.region || '',
+        bucket: storage.bucket || ''
+      });
+    } else {
+      setFormData({
+        name: '',
+        endpoint: '',
+        accessKey: '',
+        secretKey: '',
+        region: '',
+        bucket: ''
+      });
+    }
+  }, [storage, mode]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onAdd(formData);
+    onSave(formData, storage?.id);
+    onClose();
+  };
+
+  const handleClose = () => {
+    setFormData({
+      name: '',
+      endpoint: '',
+      accessKey: '',
+      secretKey: '',
+      region: '',
+      bucket: ''
+    });
     onClose();
   };
 
@@ -32,7 +66,7 @@ const AddStorageModal = ({ isOpen, onClose, onAdd }) => {
   return (
     <div className={styles.modal}>
       <div className={styles.modalContent}>
-        <h2>Add New Storage</h2>
+        <h2>{mode === 'edit' ? 'Редактировать хранилище' : 'Добавить новое хранилище'}</h2>
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.formGroup}>
             <label>Storage Name</label>
@@ -57,7 +91,7 @@ const AddStorageModal = ({ isOpen, onClose, onAdd }) => {
           <div className={styles.formGroup}>
             <label>Access Key</label>
             <input
-              type="text"
+              type="password"
               value={formData.accessKey}
               onChange={(e) => setFormData({ ...formData, accessKey: e.target.value })}
               placeholder="Enter access key"
@@ -95,11 +129,11 @@ const AddStorageModal = ({ isOpen, onClose, onAdd }) => {
             />
           </div>
           <div className={styles.buttons}>
-            <button type="button" className={styles.secondary} onClick={onClose}>
+            <button type="button" className={styles.secondary} onClick={handleClose}>
               Cancel
             </button>
             <button type="submit" className={styles.primary}>
-              Add Storage
+              {mode === 'edit' ? 'Save Changes' : 'Add Storage'}
             </button>
           </div>
         </form>
@@ -108,7 +142,7 @@ const AddStorageModal = ({ isOpen, onClose, onAdd }) => {
   );
 };
 
-const ServerCard = ({ server }) => {
+const ServerCard = ({ server, onEdit, onDelete }) => {
   const usedPercentage = (server.usedSpace / server.totalSpace) * 100;
   const progressBarClass = usedPercentage > 90 ? 'critical' : usedPercentage > 70 ? 'warning' : '';
 
@@ -116,7 +150,25 @@ const ServerCard = ({ server }) => {
     <div className={styles.serverCard}>
       <div className={styles.serverHeader}>
         <h3>{server.name}</h3>
-        <div className={`${styles.statusIndicator} ${styles[server.status]}`} />
+        <div className={styles.headerActions}>
+          <div className={`${styles.statusIndicator} ${styles[server.status]}`} />
+          <div className={styles.actionButtons}>
+            <button 
+              className={styles.actionButton} 
+              onClick={() => onEdit(server)}
+              title="Редактировать"
+            >
+              <FiEdit2 />
+            </button>
+            <button 
+              className={`${styles.actionButton} ${styles.deleteButton}`} 
+              onClick={() => onDelete(server.id)}
+              title="Удалить"
+            >
+              <FiTrash2 />
+            </button>
+          </div>
+        </div>
       </div>
       <div className={styles.storageInfo}>
         <div className={`${styles.progressBar} ${styles[progressBarClass]}`}>
@@ -143,9 +195,15 @@ const ServerCard = ({ server }) => {
           </div>
           <div className={styles.detail}>
             <span>
+              <FiDatabase /> Bucket
+            </span>
+            <span>{server.bucket}</span>
+          </div>
+          <div className={styles.detail}>
+            <span>
               <FiClock /> Last Sync
             </span>
-            <span>{new Date(server.lastSync).toLocaleString()}</span>
+            <span>{server.lastSync}</span>
           </div>
         </div>
       </div>
@@ -154,35 +212,80 @@ const ServerCard = ({ server }) => {
 };
 
 export const Storage = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [servers, setServers] = useState(mockStorageServers);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingStorage, setEditingStorage] = useState(null);
+  const [modalMode, setModalMode] = useState('add');
 
-  const handleAddStorage = (newStorage) => {
-    // In a real application, this would make an API call to add the storage
-    console.log('Adding new storage:', newStorage);
-    // For now, we'll just show a success message
-    alert('Storage added successfully!');
+  const handleAddStorage = () => {
+    setModalMode('add');
+    setEditingStorage(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditStorage = (storage) => {
+    setModalMode('edit');
+    setEditingStorage(storage);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteStorage = (storageId) => {
+    setServers(prev => prev.filter(server => server.id !== storageId));
+  };
+
+  const handleSaveStorage = (formData, storageId = null) => {
+    if (storageId) {
+      // Edit existing storage
+      setServers(prev => prev.map(server => 
+        server.id === storageId 
+          ? { ...server, ...formData }
+          : server
+      ));
+    } else {
+      // Add new storage
+      const newStorage = {
+        id: Date.now(),
+        ...formData,
+        status: 'active',
+        usedSpace: 0,
+        totalSpace: 1000000000000, // 1TB default
+        lastSync: new Date().toLocaleDateString()
+      };
+      setServers(prev => [...prev, newStorage]);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingStorage(null);
   };
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h1>Хранилище данных</h1>
-        <button className={styles.addButton} onClick={() => setIsModalOpen(true)}>
+        <button className={styles.addButton} onClick={handleAddStorage}>
           <FiPlus /> Добавить хранилище
         </button>
       </div>
-      
+
       <div className={styles.grid}>
         {servers.map(server => (
-          <ServerCard key={server.id} server={server} />
+          <ServerCard
+            key={server.id}
+            server={server}
+            onEdit={handleEditStorage}
+            onDelete={handleDeleteStorage}
+          />
         ))}
       </div>
 
-      <AddStorageModal
+      <StorageModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onAdd={handleAddStorage}
+        onClose={handleCloseModal}
+        onSave={handleSaveStorage}
+        storage={editingStorage}
+        mode={modalMode}
       />
     </div>
   );

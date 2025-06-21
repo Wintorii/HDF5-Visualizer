@@ -6,11 +6,23 @@ import clsx from 'clsx';
 import { useLocation, useNavigate } from 'react-router-dom';
 // import TextLogo from 'shared/assets/icons/smallLogoText.svg?react';
 
-export const AsideMenu = () => {
+export const AsideMenu = ({ isMobileMenuOpen, closeMobileMenu }) => {
     const [menuList, setMenuList] = useState(menuItemList);
     const navigate = useNavigate();
     const location = useLocation();
-    const [isOpen, setIsOpen] = useState(false);
+    const [isHoverOpen, setIsHoverOpen] = useState(false);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth <= 768);
+        };
+
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const isOpen = isMobile ? isMobileMenuOpen : isHoverOpen;
    
     const activateSingleItem = (activeIndex) => {
         setMenuList((prev) =>
@@ -23,6 +35,9 @@ export const AsideMenu = () => {
 
     const onMenuItemClick = (item) => {
         navigate(`/${item.url}`);
+        if (isMobile) {
+            closeMobileMenu();
+        }
     }
 
     useEffect(() => {
@@ -43,10 +58,11 @@ export const AsideMenu = () => {
     return (
         <aside 
             className={clsx(Styles.aside, {
-                [Styles.opened]: isOpen
+                [Styles.opened]: isOpen,
+                [Styles.mobile]: isMobile
             })}
-            onMouseEnter={() => setIsOpen(true)}
-            onMouseLeave={() => setIsOpen(false)}
+            onMouseEnter={!isMobile ? () => setIsHoverOpen(true) : undefined}
+            onMouseLeave={!isMobile ? () => setIsHoverOpen(false) : undefined}
         >
             <div className={Styles.iconBlock}>
                 {/* <Icon className={Styles.icon} /> */}
