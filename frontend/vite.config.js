@@ -15,6 +15,20 @@ export default defineConfig({
       include: '**/*.svg',
     }),
   ],
+  build: {
+    rollupOptions: {
+      external: [],
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          canvasjs: ['@canvasjs/react-charts']
+        }
+      }
+    }
+  },
+  optimizeDeps: {
+    include: ['@canvasjs/react-charts']
+  }
 })
 
 
